@@ -31,4 +31,5 @@ cc_library(
         "@polylineencoder",
         "@asio",
     ],
+    visibility = ["//visibility:public"],
 )
