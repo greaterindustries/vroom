@@ -441,6 +441,87 @@ inline Location get_task_location(const rapidjson::Value& v,
   return Location(parse_coordinates(v, "location"));
 }
 
+inline std::unordered_set<std::string> get_drain_spec_labels(const rapidjson::Value& spec) {
+  std::unordered_set<std::string> drain_spec_labels;
+  if (spec.HasMember("labels")) {
+    if (!spec["labels"].IsArray()) {
+      throw InputException("Invalid drain_specs labels array.");
+    }
+    for (rapidjson::SizeType i = 0; i < spec["labels"].Size(); ++i) {
+      if (!spec["labels"][i].IsString()) {
+        throw InputException("Invalid drain_specs label.");
+      }
+      drain_spec_labels.insert(spec["labels"][i].GetString());
+    }
+  }
+  return drain_spec_labels;
+}
+
+inline std::vector<Drain>& get_drain_specs(const rapidjson::Value& json_job) {
+  std::vector<Drain> drain_specs;
+  if (json_job.HasMember("drain_specs")) {
+    if (!json_job["drain_specs"].IsArray()) {
+      throw InputException("Invalid drain array.");
+    }
+    for (rapidjson::SizeType i = 0; i < json_job["drain_specs"].Size(); ++i) {
+      if (!json_job["drain_specs"][i].IsObject()) {
+        throw InputException("Invalid drain object.");
+      }
+      // Maybe check validity of drain_specs object here?
+
+      drain_specs.push_back(Drain(json_job["drain_specs"][i]["lastServiceDate"].GetUint(),
+                                  json_job["drain_specs"][i]["lastServiceQuantity"].GetUint(),
+                                  json_job["drain_specs"][i]["productId"].GetString(),
+                                  json_job["drain_specs"][i]["drainRateUnitsPerDay"].GetDouble(),
+                                  get_drain_spec_labels(json_job["drain_specs"][i]),
+                                  json_job["drain_specs"][i]["maxQuantity"].GetUint(),
+                                  json_job["drain_specs"][i]["productCategory"].GetString()));
+    }
+  }
+  return drain_specs;
+}
+
+inline DrainPolicy& get_drain_policy(const rapidjson::Value& json_job) {
+  DrainPolicy drain_policy;
+  if (json_job.HasMember("drain_policy")) {
+    if (!json_job["drain_policy"].IsObject()) {
+      throw InputException("Invalid drain_policy object.");
+    }
+    if (json_job["drain_policy"].HasMember("filter")) {
+      if (!json_job["drain_policy"]["filter"].IsObject()) {
+        throw InputException("Invalid drain_policy filter object.");
+      }
+      for (auto& entry : json_job["drain_policy"]["filter"].GetObject()) {
+        if (!entry.value.IsString()) {
+          throw InputException("Invalid drain_policy filter value.");
+        }
+        drain_policy.filter[entry.name.GetString()] = entry.value.GetString();
+      }
+    }
+    if (json_job["drain_policy"].HasMember("policy")) {
+      if (!json_job["drain_policy"]["policy"].IsString()) {
+        throw InputException("Invalid drain_policy policy value.");
+      }
+      std::string drain_policy_type = json_job["drain_policy"]["policy"].GetString();
+      if (drain_policy_type == "avg") {
+        drain_policy.policy = DRAIN_POLICY_TYPE::AVG;
+      } else if (drain_policy_type == "min") {
+        drain_policy.policy = DRAIN_POLICY_TYPE::MIN;
+      } else if (drain_policy_type == "max") {
+        drain_policy.policy = DRAIN_POLICY_TYPE::MAX;
+      } else if (drain_policy_type == "median") {
+        drain_policy.policy = DRAIN_POLICY_TYPE::MEDIAN;
+      } else if (drain_policy_type == "p90") {
+        drain_policy.policy = DRAIN_POLICY_TYPE::P90;
+      }
+      else {
+        throw InputException("Invalid drain_policy policy value.");
+      }
+    }
+  }
+  return drain_policy;
+}
+
 inline Job get_job(const rapidjson::Value& json_job, unsigned amount_size) {
   check_id(json_job, "job");
 
@@ -461,7 +542,9 @@ inline Job get_job(const rapidjson::Value& json_job, unsigned amount_size) {
              get_skills(json_job),
              get_priority(json_job),
              get_time_windows(json_job),
-             get_string(json_job, "description"));
+             get_string(json_job, "description"),
+             json_job.HasMember("drain_specs") ? get_drain_specs(json_job) : std::vector<Drain>(),
+             json_job.HasMember("drain_policy") ? get_drain_policy(json_job) : std::optional<DrainPolicy>());
 }
 
 template <class T> inline Matrix<T> get_matrix(rapidjson::Value& m) {
@@ -486,6 +569,61 @@ template <class T> inline Matrix<T> get_matrix(rapidjson::Value& m) {
   }
 
   return matrix;
+}
+
+inline std::unordered_set<Duration> get_target_drain_frequencies_config(const rapidjson::Value& config) {
+  std::unordered_set<Duration> target_drain_frequencies_config;
+  if (config.HasMember("target_drain_frequencies")) {
+    if (!config["target_drain_frequencies"].IsArray()) {
+      throw InputException("Invalid target_drain_frequencies array.");
+    }
+    for (rapidjson::SizeType i = 0; i < config["target_drain_frequencies"].Size(); ++i) {
+      if (!config["target_drain_frequencies"][i].IsUint()) {
+        throw InputException("Invalid target_drain_frequencies value.");
+      }
+      target_drain_frequencies_config.insert(config["target_drain_frequencies"][i].GetUint());
+    }
+  }
+  return target_drain_frequencies_config;
+}
+
+template <class T> inline std::unordered_map<std::string, T> get_resolution_config(const rapidjson::Value& config, const char* key) {
+  std::unordered_map<std::string, T> lookup;
+  if (config.HasMember(key)) {
+    if (!config[key].IsObject()) {
+      throw InputException("Invalid " + std::string(key) + " object.");
+    }
+    if (config[key].HasMember("lookup_resolutions")) {
+      if (!config[key]["lookup_resolutions"].IsObject()) {
+        throw InputException("Invalid " + std::string(key) + " lookup_resolutions object.");
+      }
+      for (auto& entry : config[key]["lookup_resolutions"].GetObject()) {
+        if (!entry.value.IsUint()) {
+          throw InputException("Invalid " + std::string(key) + " value.");
+        }
+        lookup[entry.name.GetString()] = entry.value.GetUint();
+      }
+    }
+  }
+  return lookup;
+}
+
+template <class T> inline std::unordered_map<std::string, T> get_lookups(const rapidjson::Value& config, const char* key) {
+  std::unordered_map<std::string, T> lookup;
+  if (config.HasMember(key)) {
+    if (!config[key].IsObject()) {
+      throw InputException("Invalid " + std::string(key) + " object.");
+    }
+
+    for (auto& entry : config[key].GetObject()) {
+      if (!entry.value.IsUint()) {
+        throw InputException("Invalid " + std::string(key) + " value.");
+      }
+      lookup[entry.name.GetString()] = entry.value.GetUint();
+    }
+  }
+  
+  return lookup;
 }
 
 void parse(Input& input, const std::string& input_str, bool geometry) {
@@ -615,6 +753,33 @@ void parse(Input& input, const std::string& input_str, bool geometry) {
       input.set_durations_matrix(DEFAULT_PROFILE,
                                  get_matrix<UserDuration>(
                                    json_input["matrix"]));
+    }
+  }
+
+  // Add configuration
+  if (json_input.HasMember("configuration")) {
+    auto config = json_input["configuration"].GetObject();
+    
+    if (config.HasMember("target_drain_frequencies")) {
+      input.set_target_drain_frequencies_config(get_target_drain_frequencies_config(config));
+    }
+    if (config.HasMember("capacity")) {
+      input.set_capacity_lookup_resolutions(get_resolution_config<Capacity>(config, "capacity"));
+    }
+    if (config.HasMember("serviceCost")) {
+      input.set_service_cost_lookup_resolutions(get_resolution_config<UserDuration>(config, "serviceCost"));
+    }
+  }
+
+  // Add lookups
+  if (json_input.HasMember("lookups")) {
+    auto lookups = json_input["lookups"].GetObject();
+    
+    if (lookups.HasMember("capacity")) {
+      input.set_capacity_lookups(get_lookups<Capacity>(lookups, "capacity"));
+    }
+    if (lookups.HasMember("serviceCost")) {
+      input.set_service_cost_lookups(get_lookups<UserDuration>(lookups, "serviceCost"));
     }
   }
 }

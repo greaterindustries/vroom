@@ -1092,6 +1092,26 @@ void Input::set_matrices(unsigned nb_thread) {
   }
 }
 
+void Input::set_capacity_lookups(const std::unordered_map<std::string, Capacity>& capacity_lookups) {
+  _capacity_lookups = std::move(capacity_lookups);
+}
+
+void Input::set_service_cost_lookups(const std::unordered_map<std::string, UserDuration>& service_cost_lookups) {
+  _service_cost_lookups = std::move(service_cost_lookups);
+}
+
+void Input::set_target_drain_frequencies_config(const std::unordered_set<Duration>& target_drain_frequencies) {
+  _target_drain_frequencies_config = std::move(target_drain_frequencies);
+}
+
+void Input::set_capacity_lookup_resolutions(const std::unordered_map<std::string, Capacity>& capacity_lookup_resolutions) {
+  _capacity_lookup_resolutions_config = std::move(capacity_lookup_resolutions);
+}
+
+void Input::set_service_cost_lookup_resolutions(const std::unordered_map<std::string, UserDuration>& service_cost_lookup_resolutions) {
+  _service_cost_lookup_resolutions_config = std::move(service_cost_lookup_resolutions);
+}
+
 std::unique_ptr<VRP> Input::get_problem() const {
   if (_has_TW) {
     return std::make_unique<VRPTW>(*this);

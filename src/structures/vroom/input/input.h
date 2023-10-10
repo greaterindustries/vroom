@@ -77,6 +77,13 @@ private:
   std::vector<std::vector<Eval>> _jobs_vehicles_evals;
   std::vector<bool> _good_TSP_candidate;
 
+  // Custom Chaski Variables
+  std::unordered_map<std::string, Capacity> _capacity_lookups;
+  std::unordered_map<std::string, UserDuration> _service_cost_lookups;
+  std::unordered_set<Duration> _target_drain_frequencies_config;
+  std::unordered_map<std::string, Capacity> _capacity_lookup_resolutions_config;
+  std::unordered_map<std::string, UserDuration> _service_cost_lookup_resolutions_config;
+
   unsigned _amount_size{0};
   Amount _zero{0};
 
@@ -134,6 +141,21 @@ public:
                             Matrix<UserDistance>&& m);
 
   void set_costs_matrix(const std::string& profile, Matrix<UserCost>&& m);
+
+  void set_capacity_lookups(const std::unordered_map<std::string, Capacity>&
+                              capacity_lookups);
+
+  void set_service_cost_lookups(const std::unordered_map<std::string, UserDuration>&
+                              service_cost_lookups);
+
+  void set_target_drain_frequencies_config(const std::unordered_set<Duration>&
+                              target_drain_frequencies_config);
+
+  void set_capacity_lookup_resolutions(const std::unordered_map<std::string, Capacity>&
+                              capacity_lookup_resolutions);
+
+  void set_service_cost_lookup_resolutions(const std::unordered_map<std::string, UserDuration>&
+                              service_cost_lookup_resolutions);
 
   const Amount& zero_amount() const {
     return _zero;

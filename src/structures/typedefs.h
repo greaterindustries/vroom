@@ -101,6 +101,9 @@ struct Server {
   }
 };
 
+// Drain policy types
+enum class DRAIN_POLICY_TYPE { AVG, MAX, MIN, MEDIAN, P90 };
+
 // 'Single' job is a regular one-stop job without precedence
 // constraints.
 enum class JOB_TYPE { SINGLE, PICKUP, DELIVERY };

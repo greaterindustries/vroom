@@ -30,7 +30,9 @@ Job::Job(Id id,
          Skills skills,
          Priority priority,
          const std::vector<TimeWindow>& tws,
-         std::string description)
+         std::string description,
+         const std::optional<std::vector<Drain>>& drains,
+         const std::optional<DrainPolicy>& drain_policy)
   : location(location),
     id(id),
     type(JOB_TYPE::SINGLE),
@@ -42,7 +44,9 @@ Job::Job(Id id,
     priority(priority),
     tws(tws),
     description(std::move(description)),
-    tw_length(get_tw_length(tws)) {
+    tw_length(get_tw_length(tws)),
+    drains(std::move(drains)),
+    drain_policy(std::move(drain_policy)) {
   utils::check_tws(tws, id, "job");
   utils::check_priority(priority, id, "job");
 }
@@ -56,7 +60,9 @@ Job::Job(Id id,
          Skills skills,
          Priority priority,
          const std::vector<TimeWindow>& tws,
-         std::string description)
+         std::string description,
+         const std::optional<std::vector<Drain>>& drains,
+         const std::optional<DrainPolicy>& drain_policy)
   : location(location),
     id(id),
     type(type),
@@ -68,7 +74,9 @@ Job::Job(Id id,
     priority(priority),
     tws(tws),
     description(std::move(description)),
-    tw_length(get_tw_length(tws)) {
+    tw_length(get_tw_length(tws)),
+    drains(std::move(drains)),
+    drain_policy(std::move(drain_policy)) {
   assert(type == JOB_TYPE::PICKUP || type == JOB_TYPE::DELIVERY);
   utils::check_tws(tws, id, "job");
   utils::check_priority(priority, id, "job");
