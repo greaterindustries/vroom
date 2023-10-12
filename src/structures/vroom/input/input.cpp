@@ -1162,6 +1162,7 @@ Solution Input::solve(unsigned exploration_level,
       .count();
 
   if (_geometry) {
+    #if USE_ROUTING
     for (auto& route : sol.routes) {
       const auto& profile = route.profile;
       auto rw = std::ranges::find_if(_routing_wrappers, [&](const auto& wr) {
@@ -1180,6 +1181,7 @@ Solution Input::solve(unsigned exploration_level,
                      .count();
 
     sol.summary.computing_times.routing = routing;
+      #endif
   }
 
   return sol;
