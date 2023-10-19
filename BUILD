@@ -7,8 +7,7 @@ cc_library(
         "src/**/*.cpp",
     ], exclude =[
         "src/main.cpp",
-        "src/routing/libosrm_wrapper.cpp",
-        "src/routing/http_wrapper.cpp"]),
+        "src/routing/*.cpp",]),
     hdrs = glob([
         "src/*.h",
         "src/**/*.h",
@@ -20,6 +19,9 @@ cc_library(
         "-Wall",
         "-O3",
         "-DASIO_STANDALONE",
+        "-DUSE_ROUTING=0",
+        "-DUSE_LIBOSRM=0",
+        "-DUSE_LIBGLPK=0",
     ],
     linkopts = [
         "-lpthread",
