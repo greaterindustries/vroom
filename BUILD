@@ -7,7 +7,8 @@ cc_library(
         "src/**/*.cpp",
     ], exclude =[
         "src/main.cpp",
-        "src/routing/*.cpp",]),
+        "src/routing/*.cpp",
+        "src/algorithms/validation/choose_ETA.cpp",]),
     hdrs = glob([
         "src/*.h",
         "src/**/*.h",
@@ -28,7 +29,6 @@ cc_library(
     ],
     includes = ["src"],
     deps = [
-        "@glpk",
         "@rapidjson",
         "@polylineencoder",
         "@asio",
