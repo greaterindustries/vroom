@@ -14,7 +14,7 @@ cc_library(
         "src/**/*.h",
     ]),
     copts = [
-        "-std=c++17",
+        "-std=c++20",
         "-Wextra",
         "-Wpedantic",
         "-Wall",
