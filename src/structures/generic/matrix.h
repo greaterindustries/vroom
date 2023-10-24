@@ -30,9 +30,13 @@ public:
 
   Matrix<T> get_sub_matrix(const std::vector<Index>& indices) const;
 
+  Matrix(const Matrix<T>& other) : n(other.n), data(other.data) {
+  }
+
   T* operator[](std::size_t i) {
     return data.data() + (i * n);
   }
+
   const T* operator[](std::size_t i) const {
     return data.data() + (i * n);
   }
