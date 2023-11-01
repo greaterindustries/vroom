@@ -11,15 +11,16 @@ All rights reserved (see LICENSE).
 */
 
 #include <initializer_list>
-
+#include <memory>
 #include "structures/typedefs.h"
+#include <vector>
 
 namespace vroom {
 
 template <class T> class Matrix {
 
   std::size_t n;
-  std::vector<T> data;
+  std::shared_ptr<std::vector<T>> data;
 
 public:
   Matrix();
@@ -34,11 +35,11 @@ public:
   }
 
   T* operator[](std::size_t i) {
-    return data.data() + (i * n);
+    return data->data() + (i * n);
   }
 
   const T* operator[](std::size_t i) const {
-    return data.data() + (i * n);
+    return data->data() + (i * n);
   }
 
   std::size_t size() const {
