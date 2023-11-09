@@ -43,11 +43,33 @@ The problem description is read from standard input or from a file
 
 | Key         | Description |
 |-----------|-----------|
+| `configuration`(#configuration) | object describing config for various optimizations |
 | [`jobs`](#jobs) |  array of `job` objects describing the places to visit |
 | [`shipments`](#shipments) |  array of `shipment` objects describing pickup and delivery tasks |
 | [`vehicles`](#vehicles) |  array of `vehicle` objects describing the available vehicles |
+| [`lookups`](#lookups) |  object describing custom lookups for various optimizations |
 | [[`matrices`](#matrices)] | optional description of per-profile custom matrices |
 | ~~[`matrix`]~~ | optional two-dimensional array describing a custom matrix |
+
+## Configuration
+Configuration may contain the following properties:
+
+| Key         | Description |
+| ----------- | ----------- |
+| `target_drain_frequencies` | List of frequencies for repeated deliveries to the same location |
+| `capacity` | Config for capacity optimization |
+| `capacity.lookup_resolutions` | List of resolutions to use for capacity lookup |
+| `serviceCost` | Config for service cost optimization |
+| `serviceCost.lookup_resolutions` | List of resolutions to use for service cost lookup |
+
+## Lookups
+
+Lookups may contain the following properties:
+
+| Key         | Description |
+| ----------- | ----------- |
+| `capacity` | List of capacity lookup keys to capacity values |
+| `service_cost` | List of service cost lookup keys to service cost values |
 
 ## Jobs
 
@@ -67,8 +89,29 @@ A `job` object has the following properties:
 | [`skills`] | an array of integers defining mandatory skills |
 | [`priority`] | an integer in the `[0, 100]` range describing priority level (defaults to 0) |
 | [`time_windows`] | an array of `time_window` objects describing valid slots for job service start |
+| `drain_policy` | a config object describing how to handle drain |
+| `drain_policy.filter` | a filter config to apply against drain spec items |
+| `drain_policy.filter.label` | a label to match against drain spec items |
+| `drain_policy.policy` | a policy to apply against drain spec items |
+| [`drain_specs`](#drain) | a list of drain specs |
+
 
 An error is reported if two `job` objects have the same `id`.
+
+## Drain
+
+A `drain_spec` object has the following properties:
+
+| Key         | Description |
+| ----------- | ----------- |
+| `last_service_date` | a unix timestamp describing the last date the item was serviced |
+| `last_service_quantity` | integer describing the quantity serviced at the last service date |
+| `product_id` | string representing the identifier of the product |
+| `drain_rate_units_per_day` | double describing the drain rate in units per day |
+| `labels` | array of strings describing the labels of the item |
+| `max_quantity` | integer describing the maximum quantity of the item that can be delivered |
+| `product_category` | string representing the category of the product |
+
 
 ## Shipments
 

@@ -14,6 +14,7 @@ All rights reserved (see LICENSE).
 
 #include "structures/typedefs.h"
 #include "structures/vroom/amount.h"
+#include "structures/vroom/drain.h"
 #include "structures/vroom/location.h"
 #include "structures/vroom/time_window.h"
 
@@ -32,6 +33,9 @@ struct Job {
   const std::vector<TimeWindow> tws;
   const std::string description;
   const Duration tw_length;
+  const std::optional<std::vector<Drain>> drains;
+  const std::optional<DrainPolicy> drain_policy;
+  // TODO: sma do stuff here
 
   // Constructor for regular one-stop job (JOB_TYPE::SINGLE).
   Job(Id id,
@@ -44,7 +48,9 @@ struct Job {
       Priority priority = 0,
       const std::vector<TimeWindow>& tws =
         std::vector<TimeWindow>(1, TimeWindow()),
-      std::string description = "");
+      std::string description = "",
+      const std::optional<std::vector<Drain>>& drains = std::vector<Drain>(),
+      const std::optional<DrainPolicy>& drain_policy = DrainPolicy());
 
   // Constructor for pickup and delivery jobs (JOB_TYPE::PICKUP or
   // JOB_TYPE::DELIVERY).
@@ -58,7 +64,9 @@ struct Job {
       Priority priority = 0,
       const std::vector<TimeWindow>& tws =
         std::vector<TimeWindow>(1, TimeWindow()),
-      std::string description = "");
+      std::string description = "",
+      const std::optional<std::vector<Drain>>& drains = std::vector<Drain>(),
+      const std::optional<DrainPolicy>& drain_policy = DrainPolicy());
 
   Index index() const {
     return location.index();
